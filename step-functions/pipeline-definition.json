@@ -1,0 +1,378 @@
+{
+  "Comment": "Company Intelligence Pipeline — Full medallion: bronze → silver → gold",
+  "StartAt": "Process Companies",
+  "States": {
+    "Process Companies": {
+      "Type": "Map",
+      "ItemsPath": "$.companies",
+      "MaxConcurrency": 3,
+      "Iterator": {
+        "StartAt": "Collect Data",
+        "States": {
+          "Collect Data": {
+            "Type": "Parallel",
+            "Branches": [
+              {
+                "StartAt": "Fetch SEC Filings",
+                "States": {
+                  "Fetch SEC Filings": {
+                    "Type": "Task",
+                    "Resource": "arn:aws:lambda:us-east-1:027355625929:function:sec-edgar-collector",
+                    "Parameters": {
+                      "ticker.$": "$.ticker",
+                      "company_name.$": "$.company_name"
+                    },
+                    "ResultSelector": {
+                      "s3_key.$": "$.s3_key",
+                      "cik.$": "$.cik",
+                      "status": "success"
+                    },
+                    "Retry": [
+                      {
+                        "ErrorEquals": [
+                          "States.TaskFailed",
+                          "Lambda.ServiceException"
+                        ],
+                        "IntervalSeconds": 5,
+                        "MaxAttempts": 2,
+                        "BackoffRate": 2
+                      }
+                    ],
+                    "Catch": [
+                      {
+                        "ErrorEquals": [
+                          "States.ALL"
+                        ],
+                        "ResultPath": "$",
+                        "Next": "SEC Failed"
+                      }
+                    ],
+                    "End": true
+                  },
+                  "SEC Failed": {
+                    "Type": "Pass",
+                    "Result": {
+                      "s3_key": null,
+                      "cik": null,
+                      "status": "failed"
+                    },
+                    "End": true
+                  }
+                }
+              },
+              {
+                "StartAt": "Fetch News",
+                "States": {
+                  "Fetch News": {
+                    "Type": "Task",
+                    "Resource": "arn:aws:lambda:us-east-1:027355625929:function:news-collector",
+                    "Parameters": {
+                      "ticker.$": "$.ticker",
+                      "company_name.$": "$.company_name"
+                    },
+                    "ResultSelector": {
+                      "s3_key.$": "$.s3_key",
+                      "status": "success"
+                    },
+                    "Retry": [
+                      {
+                        "ErrorEquals": [
+                          "States.TaskFailed",
+                          "Lambda.ServiceException"
+                        ],
+                        "IntervalSeconds": 5,
+                        "MaxAttempts": 2,
+                        "BackoffRate": 2
+                      }
+                    ],
+                    "Catch": [
+                      {
+                        "ErrorEquals": [
+                          "States.ALL"
+                        ],
+                        "ResultPath": "$",
+                        "Next": "News Failed"
+                      }
+                    ],
+                    "End": true
+                  },
+                  "News Failed": {
+                    "Type": "Pass",
+                    "Result": {
+                      "s3_key": null,
+                      "status": "failed"
+                    },
+                    "End": true
+                  }
+                }
+              },
+              {
+                "StartAt": "Fetch Social",
+                "States": {
+                  "Fetch Social": {
+                    "Type": "Task",
+                    "Resource": "arn:aws:lambda:us-east-1:027355625929:function:social-collector",
+                    "Parameters": {
+                      "ticker.$": "$.ticker",
+                      "company_name.$": "$.company_name"
+                    },
+                    "ResultSelector": {
+                      "s3_key.$": "$.s3_key",
+                      "status": "success"
+                    },
+                    "Retry": [
+                      {
+                        "ErrorEquals": [
+                          "States.TaskFailed",
+                          "Lambda.ServiceException"
+                        ],
+                        "IntervalSeconds": 5,
+                        "MaxAttempts": 2,
+                        "BackoffRate": 2
+                      }
+                    ],
+                    "Catch": [
+                      {
+                        "ErrorEquals": [
+                          "States.ALL"
+                        ],
+                        "ResultPath": "$",
+                        "Next": "Social Failed"
+                      }
+                    ],
+                    "End": true
+                  },
+                  "Social Failed": {
+                    "Type": "Pass",
+                    "Result": {
+                      "s3_key": null,
+                      "status": "failed"
+                    },
+                    "End": true
+                  }
+                }
+              }
+            ],
+            "ResultSelector": {
+              "sec.$": "$[0]",
+              "news.$": "$[1]",
+              "social.$": "$[2]"
+            },
+            "ResultPath": "$.collection",
+            "Next": "Process Data"
+          },
+          "Process Data": {
+            "Type": "Parallel",
+            "Branches": [
+              {
+                "StartAt": "Clean Data",
+                "States": {
+                  "Clean Data": {
+                    "Type": "Task",
+                    "Resource": "arn:aws:lambda:us-east-1:027355625929:function:data-cleaner",
+                    "Parameters": {
+                      "ticker.$": "$.ticker",
+                      "company_name.$": "$.company_name",
+                      "news_s3_key.$": "$.collection.news.s3_key",
+                      "social_s3_key.$": "$.collection.social.s3_key"
+                    },
+                    "ResultSelector": {
+                      "articles_s3_key.$": "$.articles_s3_key",
+                      "social_s3_key.$": "$.social_s3_key",
+                      "status": "success"
+                    },
+                    "Retry": [
+                      {
+                        "ErrorEquals": [
+                          "States.TaskFailed"
+                        ],
+                        "IntervalSeconds": 5,
+                        "MaxAttempts": 1
+                      }
+                    ],
+                    "Catch": [
+                      {
+                        "ErrorEquals": [
+                          "States.ALL"
+                        ],
+                        "ResultPath": "$",
+                        "Next": "Clean Failed"
+                      }
+                    ],
+                    "End": true
+                  },
+                  "Clean Failed": {
+                    "Type": "Pass",
+                    "Result": {
+                      "articles_s3_key": null,
+                      "social_s3_key": null,
+                      "status": "failed"
+                    },
+                    "End": true
+                  }
+                }
+              },
+              {
+                "StartAt": "Extract Filing",
+                "States": {
+                  "Extract Filing": {
+                    "Type": "Task",
+                    "Resource": "arn:aws:lambda:us-east-1:027355625929:function:textract-processor",
+                    "Parameters": {
+                      "ticker.$": "$.ticker",
+                      "company_name.$": "$.company_name",
+                      "cik.$": "$.collection.sec.cik",
+                      "sec_s3_key.$": "$.collection.sec.s3_key"
+                    },
+                    "ResultSelector": {
+                      "filing_s3_key.$": "$.filing_s3_key",
+                      "sections_found.$": "$.sections_found",
+                      "status": "success"
+                    },
+                    "Retry": [
+                      {
+                        "ErrorEquals": [
+                          "States.TaskFailed"
+                        ],
+                        "IntervalSeconds": 5,
+                        "MaxAttempts": 1
+                      }
+                    ],
+                    "Catch": [
+                      {
+                        "ErrorEquals": [
+                          "States.ALL"
+                        ],
+                        "ResultPath": "$",
+                        "Next": "Extract Failed"
+                      }
+                    ],
+                    "End": true
+                  },
+                  "Extract Failed": {
+                    "Type": "Pass",
+                    "Result": {
+                      "filing_s3_key": null,
+                      "sections_found": [],
+                      "status": "failed"
+                    },
+                    "End": true
+                  }
+                }
+              }
+            ],
+            "ResultSelector": {
+              "cleaned.$": "$[0]",
+              "filing.$": "$[1]"
+            },
+            "ResultPath": "$.processing",
+            "Next": "Run Sentiment Analysis"
+          },
+          "Run Sentiment Analysis": {
+            "Type": "Task",
+            "Resource": "arn:aws:lambda:us-east-1:027355625929:function:sentiment-analyzer",
+            "Parameters": {
+              "ticker.$": "$.ticker",
+              "company_name.$": "$.company_name",
+              "articles_s3_key.$": "$.processing.cleaned.articles_s3_key",
+              "social_s3_key.$": "$.processing.cleaned.social_s3_key"
+            },
+            "ResultSelector": {
+              "gold_s3_key.$": "$.gold_s3_key",
+              "sentiment_distribution.$": "$.sentiment_distribution",
+              "articles_analyzed.$": "$.articles_analyzed",
+              "social_posts_analyzed.$": "$.social_posts_analyzed"
+            },
+            "ResultPath": "$.sentiment",
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "States.TaskFailed",
+                  "Lambda.ServiceException"
+                ],
+                "IntervalSeconds": 10,
+                "MaxAttempts": 1,
+                "BackoffRate": 2
+              }
+            ],
+            "Catch": [
+              {
+                "ErrorEquals": [
+                  "States.ALL"
+                ],
+                "ResultPath": "$.sentiment_error",
+                "Next": "Company Failed"
+              }
+            ],
+            "Next": "Generate Report"
+          },
+          "Generate Report": {
+            "Type": "Task",
+            "Resource": "arn:aws:lambda:us-east-1:027355625929:function:report-generator",
+            "Parameters": {
+              "ticker.$": "$.ticker",
+              "company_name.$": "$.company_name",
+              "sentiment_s3_key.$": "$.sentiment.gold_s3_key",
+              "sec_s3_key.$": "$.collection.sec.s3_key",
+              "filing_s3_key.$": "$.processing.filing.filing_s3_key"
+            },
+            "ResultSelector": {
+              "report_s3_key.$": "$.report_s3_key",
+              "recommendation.$": "$.recommendation"
+            },
+            "ResultPath": "$.report",
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "States.TaskFailed",
+                  "Lambda.ServiceException"
+                ],
+                "IntervalSeconds": 10,
+                "MaxAttempts": 1,
+                "BackoffRate": 2
+              }
+            ],
+            "Catch": [
+              {
+                "ErrorEquals": [
+                  "States.ALL"
+                ],
+                "ResultPath": "$.report_error",
+                "Next": "Company Failed"
+              }
+            ],
+            "Next": "Company Complete"
+          },
+          "Company Complete": {
+            "Type": "Pass",
+            "Parameters": {
+              "ticker.$": "$.ticker",
+              "company_name.$": "$.company_name",
+              "report_s3_key.$": "$.report.report_s3_key",
+              "recommendation.$": "$.report.recommendation",
+              "sentiment_distribution.$": "$.sentiment.sentiment_distribution",
+              "filing_sections.$": "$.processing.filing.sections_found",
+              "status": "SUCCESS"
+            },
+            "End": true
+          },
+          "Company Failed": {
+            "Type": "Pass",
+            "Parameters": {
+              "ticker.$": "$.ticker",
+              "company_name.$": "$.company_name",
+              "status": "FAILED"
+            },
+            "End": true
+          }
+        }
+      },
+      "ResultPath": "$.results",
+      "Next": "All Done"
+    },
+    "All Done": {
+      "Type": "Pass",
+      "End": true
+    }
+  }
+}
