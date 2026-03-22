@@ -2,7 +2,7 @@
 
 > A serverless, end-to-end data intelligence platform that collects multi-source financial data, processes it through a medallion architecture, runs NLP analysis, and generates AI-powered intelligence reports — all on AWS.
 
-![Architecture](docs/architecture.png)
+![Architecture](docs/architecture.png?v=2)
 
 ## 🎯 What It Does
 
