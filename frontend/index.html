@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Company Intelligence Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #080c16; --card: rgba(255,255,255,0.025); --card-h: rgba(255,255,255,0.045);
+  --border: rgba(255,255,255,0.06); --border-h: rgba(99,102,241,0.25);
+  --t1: #e8eaf0; --t2: #94a3b8; --t3: #475569; --t4: #1e293b;
+  --accent: #6366f1; --green: #34d399; --red: #f87171; --amber: #fbbf24;
+  --mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --sans: 'Instrument Sans', 'DM Sans', -apple-system, sans-serif;
+}
+body { background: var(--bg); color: var(--t1); font-family: var(--sans); min-height: 100vh; }
+a { color: inherit; text-decoration: none; }
+input { font-family: inherit; }
+button { font-family: inherit; cursor: pointer; }
+.mono { font-family: var(--mono); }
+
+/* Tags */
+.tag { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; padding: 2px 7px; border-radius: 3px; text-transform: uppercase; white-space: nowrap; display: inline-block; }
+.tag-accent { background: rgba(99,102,241,0.1); color: var(--accent); border: 1px solid rgba(99,102,241,0.2); }
+.tag-purple { background: rgba(167,139,250,0.1); color: #a78bfa; border: 1px solid rgba(167,139,250,0.2); }
+.tag-green { background: rgba(52,211,153,0.1); color: var(--green); border: 1px solid rgba(52,211,153,0.2); }
+.tag-red { background: rgba(248,113,113,0.1); color: var(--red); border: 1px solid rgba(248,113,113,0.2); }
+.tag-amber { background: rgba(251,191,36,0.1); color: var(--amber); border: 1px solid rgba(251,191,36,0.2); }
+.tag-gray { background: rgba(255,255,255,0.04); color: var(--t3); border: 1px solid rgba(255,255,255,0.08); }
+
+.sev-HIGH { background: #2a0f11; color: #f5a3a9; border: 1px solid #5a2028; }
+.sev-MEDIUM { background: #2a2008; color: #f0c76a; border: 1px solid #5a4818; }
+.sev-LOW { background: #082a18; color: #6ad4a0; border: 1px solid #185a38; }
+
+/* Cards */
+.card { border-radius: 8px; background: var(--card); border: 1px solid var(--border); }
+.card-hover:hover { background: var(--card-h); border-color: var(--border-h); }
+
+/* Stats grid */
+.stat { padding: 14px 16px; border-radius: 8px; background: var(--card); border: 1px solid var(--border); }
+.stat-label { font-size: 10px; color: var(--t3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 5px; font-family: var(--mono); }
+.stat-value { font-size: 20px; font-weight: 600; color: var(--t1); font-family: var(--mono); }
+
+/* Section */
+.section { margin-bottom: 32px; }
+.section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.section-title { font-size: 15px; font-weight: 600; color: var(--t1); letter-spacing: -0.01em; }
+
+/* Prose */
+.prose { font-size: 13.5px; line-height: 1.85; color: #b8bfcf; }
+.prose p { margin-bottom: 12px; }
+
+/* Nav */
+.nav { border-bottom: 1px solid var(--border); padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; }
+.nav-logo { width: 34px; height: 34px; border-radius: 8px; background: var(--accent); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; font-weight: 800; font-family: var(--mono); }
+
+/* Tabs */
+.tab-bar { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 28px; }
+.tab-btn { padding: 12px 18px; font-size: 12px; font-weight: 500; background: none; border: none; color: var(--t3); border-bottom: 2px solid transparent; transition: all 0.2s; }
+.tab-btn.active { color: var(--t1); border-bottom-color: var(--accent); }
+.tab-btn:hover { color: var(--t2); }
+
+/* Sentiment bar */
+.sent-bar { display: flex; height: 30px; border-radius: 6px; overflow: hidden; gap: 2px; }
+.sent-seg { display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #0f172a; min-width: 30px; transition: width 0.6s ease; }
+.sent-legend { display: flex; gap: 18px; margin-top: 10px; }
+.sent-legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--t2); }
+.sent-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+/* Search */
+.search-input { width: 100%; padding: 12px 16px; border-radius: 8px; font-size: 13px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--t1); outline: none; font-family: var(--mono); }
+.search-input:focus { border-color: rgba(99,102,241,0.4); }
+.search-btn { padding: 12px 24px; border-radius: 8px; border: none; background: var(--accent); color: #fff; font-size: 13px; font-weight: 600; transition: all 0.2s; }
+.search-btn:hover { background: #5558e6; }
+.search-btn:disabled { background: rgba(99,102,241,0.3); cursor: wait; }
+
+/* Suggestions */
+.suggestions { position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; border-radius: 8px; background: #0f1320; border: 1px solid var(--border); box-shadow: 0 20px 60px rgba(0,0,0,0.5); z-index: 50; max-height: 260px; overflow: auto; }
+.sug-item { padding: 10px 16px; cursor: pointer; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); transition: background 0.1s; }
+.sug-item:hover { background: rgba(255,255,255,0.04); }
+
+/* Report list */
+.report-item { padding: 18px 20px; border-radius: 12px; cursor: pointer; background: var(--card); border: 1px solid var(--border); transition: all 0.2s; margin-bottom: 10px; }
+.report-item:hover { background: var(--card-h); border-color: var(--border-h); }
+
+/* Quick buttons */
+.quick-btn { padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--card); color: var(--t2); font-size: 11px; font-family: var(--mono); font-weight: 500; transition: all 0.2s; }
+.quick-btn:hover { color: var(--accent); border-color: var(--border-h); }
+
+/* Risk/Opportunity cards */
+.risk-card { padding: 14px 16px; border-radius: 8px; background: var(--card); border: 1px solid var(--border); margin-bottom: 10px; }
+.opp-card { padding: 14px 16px; border-radius: 8px; background: rgba(52,211,153,0.03); border: 1px solid rgba(52,211,153,0.1); margin-bottom: 10px; }
+
+/* Recommendation box */
+.rec-box { padding: 18px 20px; border-radius: 8px; border-left: 3px solid var(--amber); background: rgba(251,191,36,0.03); }
+
+/* Entity row */
+.entity-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: 8px; background: var(--card); border: 1px solid var(--border); margin-bottom: 6px; }
+
+/* Pipeline code */
+.pipeline-code { padding: 18px; border-radius: 8px; font-size: 11px; line-height: 1.7; font-family: var(--mono); color: var(--t2); background: rgba(0,0,0,0.35); border: 1px solid var(--border); white-space: pre; overflow-x: auto; }
+
+/* Phrase pill */
+.phrase-pill { padding: 6px 12px; border-radius: 6px; background: var(--card); border: 1px solid var(--border); font-size: 12px; color: #b8bfcf; display: inline-block; margin: 0 8px 8px 0; }
+
+/* Service card */
+.svc-card { padding: 12px 14px; border-radius: 8px; background: var(--card); border: 1px solid var(--border); }
+
+/* Spinner */
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
+.spinner { width: 40px; height: 40px; border: 2px solid rgba(99,102,241,0.2); border-top: 2px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
+
+/* Footer */
+.footer { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--border); font-size: 10px; color: var(--t4); text-align: center; line-height: 2; }
+
+/* Grid helpers */
+.grid-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
+.grid-services { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; }
+
+/* Clamp text */
+.clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+.hidden { display: none; }
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<div class="nav">
+  <div style="display:flex;align-items:center;gap:12px;cursor:pointer" onclick="showHome()">
+    <div class="nav-logo">CI</div>
+    <div>
+      <div style="font-size:14px;font-weight:700">Company Intelligence</div>
+      <div style="font-size:10px;color:var(--t3)">AI-Powered Research Platform</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px">
+    <span class="tag tag-green" id="report-count">0 REPORTS</span>
+    <span class="tag tag-accent">14 AWS SERVICES</span>
+  </div>
+</div>
+
+<div style="max-width:860px;margin:0 auto;padding:28px 24px">
+
+  <!-- Search -->
+  <div style="display:flex;gap:8px;position:relative" id="search-area">
+    <div style="position:relative;flex:1">
+      <input class="search-input" id="search-ticker" placeholder="Search ticker or company name..." oninput="onSearchInput()" onfocus="showSuggestions()" onkeydown="if(event.key==='Enter')doAnalyze()">
+      <div class="suggestions hidden" id="suggestions"></div>
+    </div>
+    <input class="search-input" id="search-company" placeholder="Company name..." style="width:180px;font-family:var(--sans)">
+    <button class="search-btn" id="analyze-btn" onclick="doAnalyze()">Analyze</button>
+  </div>
+
+  <!-- Error -->
+  <div id="error-bar" class="hidden" style="margin:16px 0;padding:12px 16px;border-radius:8px;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.2);color:var(--red);font-size:13px"></div>
+
+  <!-- Views -->
+  <div id="view-home" style="margin-top:24px"></div>
+  <div id="view-loading" class="hidden" style="margin-top:24px"></div>
+  <div id="view-report" class="hidden" style="margin-top:24px"></div>
+</div>
+
+<script>
+const API = "https://3c9lafco5a.execute-api.us-east-1.amazonaws.com/prod";
+const COMPANIES = [
+  {t:"TSLA",n:"Tesla"},{t:"AAPL",n:"Apple"},{t:"MSFT",n:"Microsoft"},
+  {t:"NVDA",n:"Nvidia"},{t:"AMZN",n:"Amazon"},{t:"GOOGL",n:"Google"},
+  {t:"META",n:"Meta"},{t:"JPM",n:"JPMorgan Chase"},{t:"JNJ",n:"Johnson & Johnson"},
+  {t:"XOM",n:"ExxonMobil"},{t:"BRK-B",n:"Berkshire Hathaway"},{t:"V",n:"Visa"},
+];
+let allReports = [];
+let currentReport = null;
+let analyzing = false;
+
+// ─── API ───
+async function apiFetch(path, opts) {
+  const r = await fetch(API + path, opts);
+  if (!r.ok) throw new Error(`API error: ${r.status}`);
+  return r.json();
+}
+
+// ─── Init ───
+async function init() {
+  try {
+    const data = await apiFetch("/reports");
+    allReports = data.reports || [];
+    document.getElementById("report-count").textContent = allReports.length + " REPORTS";
+    renderHome();
+  } catch (e) {
+    showError("Failed to load reports: " + e.message);
+  }
+}
+
+// ─── Helpers ───
+function showError(msg) {
+  const el = document.getElementById("error-bar");
+  el.textContent = msg; el.classList.remove("hidden");
+  setTimeout(() => el.classList.add("hidden"), 8000);
+}
+function hideError() { document.getElementById("error-bar").classList.add("hidden"); }
+
+function showView(name) {
+  ["home","loading","report"].forEach(v => {
+    document.getElementById("view-" + v).classList.toggle("hidden", v !== name);
+  });
+}
+
+function showHome() { showView("home"); renderHome(); }
+
+function recColor(text) {
+  if (!text) return "gray";
+  const u = text.toUpperCase();
+  if (u.includes("BULLISH")) return "green";
+  if (u.includes("BEARISH")) return "red";
+  return "amber";
+}
+function recLabel(text) {
+  if (!text) return "—";
+  const u = text.toUpperCase();
+  if (u.includes("BULLISH")) return "BULLISH";
+  if (u.includes("BEARISH")) return "BEARISH";
+  return "NEUTRAL";
+}
+function escHtml(s) { const d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
+
+// ─── Search ───
+function onSearchInput() {
+  const val = document.getElementById("search-ticker").value.toLowerCase();
+  if (!val) { document.getElementById("suggestions").classList.add("hidden"); return; }
+  const filtered = COMPANIES.filter(c => c.t.toLowerCase().includes(val) || c.n.toLowerCase().includes(val));
+  if (filtered.length === 0) { document.getElementById("suggestions").classList.add("hidden"); return; }
+  document.getElementById("suggestions").innerHTML = filtered.map(c =>
+    `<div class="sug-item" onclick="selectCompany('${c.t}','${escHtml(c.n)}')">
+      <span class="mono" style="color:var(--accent);font-size:13px;font-weight:600;width:56px">${c.t}</span>
+      <span style="color:var(--t2);font-size:13px">${escHtml(c.n)}</span>
+    </div>`
+  ).join("");
+  document.getElementById("suggestions").classList.remove("hidden");
+}
+function showSuggestions() { onSearchInput(); }
+function selectCompany(t, n) {
+  document.getElementById("search-ticker").value = t;
+  document.getElementById("search-company").value = n;
+  document.getElementById("suggestions").classList.add("hidden");
+}
+document.addEventListener("click", e => {
+  if (!e.target.closest("#search-area")) document.getElementById("suggestions").classList.add("hidden");
+});
+
+// ─── Analyze ───
+async function doAnalyze() {
+  hideError();
+  const ticker = document.getElementById("search-ticker").value.toUpperCase().trim();
+  let company = document.getElementById("search-company").value.trim();
+  if (!ticker) return;
+  if (!company) {
+    const m = COMPANIES.find(c => c.t === ticker);
+    if (m) company = m.n; else { showError("Enter company name"); return; }
+  }
+  analyzing = true;
+  document.getElementById("analyze-btn").disabled = true;
+  document.getElementById("analyze-btn").textContent = "Analyzing...";
+  showView("loading");
+  renderLoading(ticker);
+
+  try {
+    const r = await apiFetch("/analyze", {
+      method: "POST", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ticker, company_name: company}),
+    });
+    if (!r.execution_id) throw new Error("No execution ID");
+
+    for (let i = 0; i < 40; i++) {
+      await new Promise(r => setTimeout(r, 3000));
+      const s = await apiFetch("/status/" + r.execution_id);
+      if (s.status === "SUCCEEDED") {
+        const all = await apiFetch("/reports");
+        allReports = all.reports || [];
+        document.getElementById("report-count").textContent = allReports.length + " REPORTS";
+        await loadReport(ticker);
+        break;
+      }
+      if (s.status === "FAILED" || s.status === "ABORTED") {
+        throw new Error("Pipeline " + s.status.toLowerCase());
+      }
+    }
+  } catch (e) {
+    showError(e.message);
+    showHome();
+  } finally {
+    analyzing = false;
+    document.getElementById("analyze-btn").disabled = false;
+    document.getElementById("analyze-btn").textContent = "Analyze";
+  }
+}
+
+async function analyzeQuick(t, n) {
+  document.getElementById("search-ticker").value = t;
+  document.getElementById("search-company").value = n;
+  doAnalyze();
+}
+
+// ─── Load Report ───
+async function loadReport(ticker) {
+  try {
+    const data = await apiFetch("/report/" + ticker);
+    currentReport = data;
+    showView("report");
+    renderReport(data);
+  } catch (e) {
+    showError("Failed to load " + ticker);
+  }
+}
+
+// ─── Render: Home ───
+function renderHome() {
+  let html = `<div style="font-size:16px;font-weight:600;color:var(--t1);margin-bottom:16px">Generated reports</div>`;
+
+  if (allReports.length === 0) {
+    html += `<div style="text-align:center;padding:60px 0;color:var(--t3)">
+      <div style="font-size:36px;margin-bottom:12px;opacity:0.3">&#9729;</div>
+      <div style="font-size:13px">No reports yet. Search for a company above to generate your first report.</div>
+    </div>`;
+  } else {
+    allReports.forEach(r => {
+      const c = recColor(r.recommendation);
+      html += `<div class="report-item" onclick="loadReport('${r.ticker}')">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="mono" style="font-size:16px;font-weight:700;color:var(--accent)">${r.ticker}</span>
+            <span style="font-size:14px">${escHtml(r.company_name)}</span>
+          </div>
+          <span class="tag tag-${c}">${recLabel(r.recommendation)}</span>
+        </div>
+        <div class="clamp-2" style="font-size:12px;color:var(--t2);line-height:1.6">${escHtml(r.executive_summary || '')}</div>
+        <div class="mono" style="display:flex;gap:16px;margin-top:10px;font-size:10px;color:var(--t3)">
+          <span>${r.articles_analyzed || '?'} articles</span>
+          <span>${r.social_posts_analyzed || '?'} social posts</span>
+          <span>${r.generated_at || ''}</span>
+        </div>
+      </div>`;
+    });
+  }
+
+  html += `<div style="margin-top:32px">
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--t3);margin-bottom:10px">Quick analyze</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px">
+      ${COMPANIES.map(c => `<button class="quick-btn" onclick="analyzeQuick('${c.t}','${escHtml(c.n)}')">${c.t}</button>`).join("")}
+    </div>
+  </div>`;
+
+  html += `<div class="footer">Company Intelligence Platform · Built by Satvik Tanuboddi<br>Powered by AWS: S3, Lambda, Step Functions, Comprehend, Textract, Bedrock, DynamoDB, API Gateway</div>`;
+
+  document.getElementById("view-home").innerHTML = html;
+}
+
+// ─── Render: Loading ───
+function renderLoading(ticker) {
+  document.getElementById("view-loading").innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;padding:80px 0">
+      <div class="spinner" style="margin-bottom:24px"></div>
+      <div style="font-size:14px;color:var(--t1);margin-bottom:4px">Generating intelligence report for ${ticker}...</div>
+      <div style="font-size:12px;color:var(--t3)">This takes about 25-30 seconds</div>
+      <div style="display:flex;gap:8px;margin-top:24px">
+        ${["Collecting data","Cleaning & extracting","NLP analysis","Generating report"].map((s,i) =>
+          `<div style="padding:6px 14px;border-radius:20px;background:var(--card);border:1px solid var(--border);font-size:10px;color:var(--t3);animation:pulse 2s ease-in-out infinite;animation-delay:${i*0.4}s">${s}</div>`
+        ).join("")}
+      </div>
+    </div>`;
+}
+
+// ─── Render: Report ───
+function renderReport(data) {
+  const rpt = data.report?.report || {};
+  const meta = data.metadata || {};
+  const agg = data.report?.aggregates || {};
+  const sd = agg.sentiment_distribution || {};
+  const sources = data.report?.data_sources || {};
+  const ticker = data.ticker;
+
+  const fin = rpt.financial_overview || {};
+  let finHtml = "";
+  if (typeof fin === "object" && Object.keys(fin).length > 0) {
+    const items = Object.entries(fin).filter(([k]) => !k.includes("highlight") && !k.includes("observation"));
+    if (items.length > 0) {
+      finHtml = `<div class="grid-stats" style="margin-bottom:32px">
+        ${items.map(([k,v]) => `<div class="stat"><div class="stat-label">${k.replace(/_/g,' ')}</div><div class="stat-value">${escHtml(String(v))}</div></div>`).join("")}
+      </div>`;
+    }
+  }
+
+  // Sentiment bar
+  const total = (sd.POSITIVE||0)+(sd.NEGATIVE||0)+(sd.NEUTRAL||0)+(sd.MIXED||0);
+  let sentHtml = "";
+  if (total > 0) {
+    const segs = [{v:sd.POSITIVE||0,c:"#34d399",l:"Positive"},{v:sd.NEGATIVE||0,c:"#f87171",l:"Negative"},{v:sd.NEUTRAL||0,c:"#64748b",l:"Neutral"},{v:sd.MIXED||0,c:"#fbbf24",l:"Mixed"}];
+    sentHtml = `<div class="sent-bar">${segs.filter(s=>s.v>0).map(s=>`<div class="sent-seg" style="width:${(s.v/total)*100}%;background:${s.c}">${s.v}</div>`).join("")}</div>
+      <div class="sent-legend">${segs.map(s=>`<div class="sent-legend-item"><div class="sent-dot" style="background:${s.c}"></div>${s.l} (${Math.round((s.v/total)*100)}%)</div>`).join("")}</div>`;
+  }
+
+  // Risk signals
+  let risksHtml = "";
+  if (rpt.risk_signals?.length) {
+    risksHtml = rpt.risk_signals.map(r => `<div class="risk-card">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span class="tag sev-${r.severity}" style="font-family:var(--mono)">${r.severity}</span>
+        <span class="mono" style="font-size:10px;color:var(--t3)">${escHtml(r.source||'')}</span>
+      </div>
+      <div style="font-size:13px;color:#b8bfcf;line-height:1.65">${escHtml(r.signal)}</div>
+    </div>`).join("");
+  }
+
+  // Opportunities
+  let oppsHtml = "";
+  if (rpt.opportunities?.length) {
+    oppsHtml = rpt.opportunities.map(o => `<div class="opp-card">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <span class="tag tag-green">UPSIDE</span>
+        <span class="mono" style="font-size:10px;color:var(--t3)">${escHtml(o.source||'')}</span>
+      </div>
+      <div style="font-size:13px;color:#b8bfcf;line-height:1.65">${escHtml(o.signal)}</div>
+    </div>`).join("");
+  }
+
+  // Entities
+  let entitiesHtml = (agg.top_entities||[]).slice(0,20).map(e =>
+    `<div class="entity-row">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:13px;font-weight:600;color:var(--t1)">${escHtml(e.text)}</span>
+        <span class="tag tag-gray">${e.type}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span class="mono" style="font-size:16px;font-weight:700;color:var(--accent)">${e.count}</span>
+        <span style="font-size:10px;color:var(--t3)">mentions</span>
+      </div>
+    </div>`
+  ).join("");
+
+  // Key phrases
+  let phrasesHtml = (agg.top_key_phrases||[]).slice(0,15).map(p =>
+    `<span class="phrase-pill">${escHtml(p.phrase)} <span class="mono" style="color:var(--accent);margin-left:4px;font-weight:600">${p.count}</span></span>`
+  ).join("");
+
+  // Sources
+  let sourcesHtml = Object.entries(sources).filter(([,v])=>v).map(([k,v]) =>
+    `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-radius:8px;background:var(--card);border:1px solid var(--border);margin-bottom:6px">
+      <span style="font-size:12px;color:var(--t2)">${k.replace(/_/g,' ')}</span>
+      <span class="mono" style="font-size:10px;color:var(--t3)">${escHtml(v)}</span>
+    </div>`
+  ).join("");
+
+  const rc = recColor(meta.recommendation || rpt.recommendation);
+
+  document.getElementById("view-report").innerHTML = `
+    <button onclick="showHome()" style="background:none;border:none;color:var(--t3);font-size:12px;cursor:pointer;padding:0;margin-bottom:16px">← Back to all reports</button>
+
+    <!-- Header -->
+    <div style="padding:28px 0 24px;margin-bottom:24px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,rgba(99,102,241,0.05) 0%,transparent 100%)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span class="tag tag-accent">AI-GENERATED REPORT</span>
+        <span class="mono" style="font-size:10px;color:var(--t3)">${meta.generated_at||''}</span>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:12px;margin-top:8px">
+        <span style="font-size:28px;font-weight:700;letter-spacing:-0.02em">${escHtml(meta.company_name||ticker)}</span>
+        <span class="mono" style="font-size:16px;font-weight:600;color:var(--accent)">${ticker}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:10px">
+        <span class="tag tag-${rc}">${recLabel(meta.recommendation||rpt.recommendation)}</span>
+        <span style="font-size:12px;color:var(--t3)">${meta.articles_analyzed||agg.articles_analyzed||'?'} articles · ${meta.social_posts_analyzed||agg.social_posts_analyzed||'?'} social posts analyzed</span>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('report',this)">Intelligence Report</button>
+      <button class="tab-btn" onclick="switchTab('entities',this)">Data & Entities</button>
+      <button class="tab-btn" onclick="switchTab('pipeline',this)">Pipeline Info</button>
+    </div>
+
+    <!-- Tab: Report -->
+    <div id="tab-report">
+      ${finHtml}
+      <div class="section"><div class="section-header"><div class="section-title">Sentiment overview</div><span class="tag tag-purple">COMPREHEND</span></div>${sentHtml}</div>
+      ${rpt.executive_summary ? `<div class="section"><div class="section-header"><div class="section-title">Executive summary</div><span class="tag tag-purple">BEDROCK</span></div><div class="prose">${escHtml(rpt.executive_summary)}</div></div>` : ''}
+      ${risksHtml ? `<div class="section"><div class="section-header"><div class="section-title">Risk signals</div></div>${risksHtml}</div>` : ''}
+      ${oppsHtml ? `<div class="section"><div class="section-header"><div class="section-title">Opportunity signals</div></div>${oppsHtml}</div>` : ''}
+      ${rpt.sentiment_analysis ? `<div class="section"><div class="section-header"><div class="section-title">Sentiment deep-dive</div><span class="tag tag-purple">COMPREHEND + BEDROCK</span></div><div class="prose">${escHtml(rpt.sentiment_analysis)}</div></div>` : ''}
+      ${rpt.management_outlook ? `<div class="section"><div class="section-header"><div class="section-title">Management outlook</div><span class="tag tag-purple">SEC 10-K</span></div><div class="prose">${escHtml(rpt.management_outlook)}</div></div>` : ''}
+      ${rpt.legal_regulatory ? `<div class="section"><div class="section-header"><div class="section-title">Legal & regulatory</div><span class="tag tag-purple">SEC 10-K</span></div><div class="prose">${escHtml(rpt.legal_regulatory)}</div></div>` : ''}
+      ${rpt.forward_looking ? `<div class="section"><div class="section-header"><div class="section-title">Forward-looking signals</div><span class="tag tag-purple">BEDROCK</span></div><div class="prose">${escHtml(rpt.forward_looking)}</div></div>` : ''}
+      ${rpt.recommendation ? `<div class="section"><div class="section-header"><div class="section-title">Recommendation</div><span class="tag tag-purple">BEDROCK</span></div><div class="rec-box"><div class="prose">${escHtml(rpt.recommendation)}</div></div></div>` : ''}
+    </div>
+
+    <!-- Tab: Entities -->
+    <div id="tab-entities" class="hidden">
+      <div class="section"><div class="section-header"><div class="section-title">Top entities</div><span class="tag tag-purple">COMPREHEND NER</span></div>${entitiesHtml}</div>
+      <div class="section"><div class="section-header"><div class="section-title">Top key phrases</div><span class="tag tag-purple">COMPREHEND</span></div><div>${phrasesHtml}</div></div>
+      ${rpt.key_entities ? `<div class="section"><div class="section-header"><div class="section-title">Entity analysis</div><span class="tag tag-purple">BEDROCK</span></div><div class="prose">${escHtml(typeof rpt.key_entities==='string'?rpt.key_entities:JSON.stringify(rpt.key_entities))}</div></div>` : ''}
+    </div>
+
+    <!-- Tab: Pipeline -->
+    <div id="tab-pipeline" class="hidden">
+      <div class="section"><div class="section-header"><div class="section-title">Data sources</div></div>${sourcesHtml}</div>
+      <div class="section"><div class="section-header"><div class="section-title">Processing stats</div></div>
+        <div class="grid-stats">
+          <div class="stat"><div class="stat-label">Articles</div><div class="stat-value">${agg.articles_analyzed||meta.articles_analyzed||'—'}</div></div>
+          <div class="stat"><div class="stat-label">Social posts</div><div class="stat-value">${agg.social_posts_analyzed||meta.social_posts_analyzed||'—'}</div></div>
+          <div class="stat"><div class="stat-label">Total analyzed</div><div class="stat-value">${agg.total_analyzed||'—'}</div></div>
+          <div class="stat"><div class="stat-label">Model</div><div class="stat-value">Claude 3.5 Haiku</div></div>
+        </div>
+      </div>
+      <div class="section"><div class="section-header"><div class="section-title">AWS services used</div><span class="tag tag-accent">14 SERVICES</span></div>
+        <div class="grid-services">
+          ${[
+            {n:"S3",r:"Data lake (bronze/silver/gold)",c:"$0.00"},
+            {n:"Lambda",r:"8 serverless functions",c:"$0.00"},
+            {n:"Step Functions",r:"Pipeline orchestration",c:"$0.00"},
+            {n:"EventBridge",r:"Scheduled triggers",c:"$0.00"},
+            {n:"DynamoDB",r:"Report metadata store",c:"$0.00"},
+            {n:"API Gateway",r:"REST API (4 endpoints)",c:"$0.00"},
+            {n:"Comprehend",r:"Sentiment + NER + key phrases",c:"$0.00"},
+            {n:"Textract",r:"SEC filing text extraction",c:"$0.00"},
+            {n:"Bedrock",r:"Report generation (Claude)",c:"~$0.003"},
+            {n:"Secrets Manager",r:"API key storage",c:"$0.00"},
+            {n:"CloudWatch",r:"Logs + monitoring",c:"$0.00"},
+            {n:"IAM",r:"Least-privilege security",c:"$0.00"},
+          ].map(s=>`<div class="svc-card"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;font-weight:600;color:var(--t1)">${s.n}</span><span class="mono" style="font-size:10px;color:var(--green)">${s.c}</span></div><div style="font-size:11px;color:var(--t3);margin-top:4px">${s.r}</div></div>`).join("")}
+        </div>
+      </div>
+      <div class="section"><div class="section-header"><div class="section-title">Pipeline architecture</div></div>
+        <div class="pipeline-code">Pipeline: company-intel-pipeline
+Status:   SUCCEEDED
+
+▶ COLLECT DATA (Parallel — bronze zone)
+  ├── SEC EDGAR Collector    → Filings + XBRL financials    ✅
+  ├── News Collector         → NewsAPI articles              ✅
+  └── Social Collector       → Hacker News stories + comments ✅
+
+▶ PROCESS DATA (Parallel — silver zone)
+  ├── Data Cleaner           → Clean articles + social posts  ✅
+  └── Textract Processor     → Extract filing sections (10-K) ✅
+
+▶ SENTIMENT ANALYSIS (Sequential — gold zone)
+  └── Comprehend             → Sentiment + NER + key phrases  ✅
+
+▶ GENERATE REPORT (Sequential — gold zone)
+  └── Bedrock (Claude Haiku) → Full intelligence report       ✅
+
+▶ STORE RESULTS
+  └── DynamoDB + S3          → Metadata + full report         ✅
+
+Est. cost per report: ~$0.01 | Total AWS services: 14</div>
+      </div>
+    </div>
+
+    <div class="footer">Company Intelligence Platform · Built by Satvik Tanuboddi<br>Powered by AWS: S3, Lambda, Step Functions, Comprehend, Textract, Bedrock, DynamoDB, API Gateway</div>
+  `;
+}
+
+function switchTab(name, btn) {
+  ["report","entities","pipeline"].forEach(t => {
+    document.getElementById("tab-"+t)?.classList.toggle("hidden", t !== name);
+  });
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+}
+
+// ─── Start ───
+init();
+</script>
+</body>
+</html>
