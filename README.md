@@ -17,6 +17,11 @@ Enter any public company ticker → the platform automatically:
 
 **~25 seconds end-to-end. ~$0.01 per report.**
 
+
+https://github.com/user-attachments/assets/7c8f1392-8f0d-4663-adfd-170fe2f0c94c
+
+
+
 ## 📸 Screenshots
 
 | Dashboard Home | Intelligence Report | Data & Entities |
