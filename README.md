@@ -284,8 +284,6 @@ Enable S3 static website hosting and upload `frontend/index.html`.
 | Report sections | 10 (exec summary, sentiment, risks, opportunities, etc.) |
 
 ## 🔮 Future Enhancements
-
-## 🔮 Future Enhancements
 ### Tier 2: Enterprise Enhancements
 * **Data Cataloging & SQL Querying:** Integrate **AWS Glue** and **Amazon Athena** to run standard SQL queries directly against the JSON files in the S3 data lake.
 * **Conversational AI:** Add **Amazon Bedrock Knowledge Bases** for managed RAG, enabling conversational Q&A chats directly with the financial data.
