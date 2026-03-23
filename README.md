@@ -117,6 +117,9 @@ Step Functions (orchestrator)
 | `report-generator` | Builds prompt, calls Bedrock, stores in DynamoDB | 512 MB | 120s |
 | `api-handler` | Routes API Gateway requests to DynamoDB/S3/Step Functions | 256 MB | 30s |
 
+<img width="4798" height="6237" alt="NotebookLM Mind Map (1)" src="https://github.com/user-attachments/assets/c00e44b3-bf6c-472d-a41b-a8be47edcf90" />
+
+
 ## 📊 Sample Report Output
 
 **Tesla (TSLA)** — Generated March 22, 2026
