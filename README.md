@@ -22,6 +22,10 @@ Enter any public company ticker → the platform automatically:
 
 https://github.com/user-attachments/assets/7c8f1392-8f0d-4663-adfd-170fe2f0c94c
 
+https://github.com/user-attachments/assets/148dbcbe-aabb-4cde-ab35-c0cb9b07c566
+
+
+
 
 
 
