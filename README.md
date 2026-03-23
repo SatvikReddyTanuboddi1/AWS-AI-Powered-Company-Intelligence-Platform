@@ -315,7 +315,7 @@ Enable S3 static website hosting and upload `frontend/index.html`.
 
 **Satvik Tanuboddi**
 - Master's in Business Analytics & Information Systems (STEM) — University of South Florida
-- [LinkedIn](https://linkedin.com/in/satvik-tanuboddi) | [GitHub](https://github.com/satvik-tanuboddi)
+- [LinkedIn](https://linkedin.com/in/satvik-tanuboddi) | [GitHub](https://github.com/SatvikReddyTanuboddi1)
 
 ## 📄 License
 
