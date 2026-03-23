@@ -285,12 +285,20 @@ Enable S3 static website hosting and upload `frontend/index.html`.
 
 ## 🔮 Future Enhancements
 
-- [ ] Historical trend tracking (sentiment over time)
-- [ ] Real-time alerts (SNS notifications when sentiment drops)
-- [ ] Additional data sources (Twitter/X, Google Trends, earnings call transcripts)
-- [ ] Comparison reports (Company A vs Company B)
-- [ ] Portfolio monitoring dashboard
-- [ ] Custom watchlist per user (Cognito auth)
+## 🔮 Future Enhancements
+### Tier 2: Enterprise Enhancements
+* **Data Cataloging & SQL Querying:** Integrate **AWS Glue** and **Amazon Athena** to run standard SQL queries directly against the JSON files in the S3 data lake.
+* **Conversational AI:** Add **Amazon Bedrock Knowledge Bases** for managed RAG, enabling conversational Q&A chats directly with the financial data.
+* **New Data Ingestion:** Use **Amazon Transcribe** to convert earnings call audio to text, and ingest Google News RSS/Google Trends for public interest signals.
+* **Enterprise Security & Delivery:** Implement **Amazon Cognito** for custom user authentication, **Amazon CloudFront** as a global CDN for the frontend, and **Amazon SNS** for email/SMS pipeline failure alerts.
+* **Infrastructure as Code (IaC):** Automate the deployment of the entire architecture using **AWS CloudFormation** or **AWS CDK**.
+
+### Tier 3: Advanced Stretch Goals
+*(Note: These services are highly resource-intensive and step beyond the standard AWS free tier)*
+* **Real-Time Processing:** Shift from daily batch processing to real-time pipelines using **Amazon Kinesis** for data streaming and **EMR Serverless** for heavy Apache Spark processing.
+* **Custom Machine Learning:** Train custom predictive models using **Amazon SageMaker** and implement vector-based semantic search with **OpenSearch Serverless**.
+* **Advanced Media Analysis:** Incorporate **Amazon Rekognition** to read and analyze the charts and images embedded inside SEC PDF filings.
+* **Multilingual & Audio Reports:** Offer AI intelligence reports in multiple languages and as playable audio files using **Amazon Translate** and **Amazon Polly**.
 
 ## 👤 Author
 
