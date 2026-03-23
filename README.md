@@ -20,6 +20,8 @@ Enter any public company ticker → the platform automatically:
 
 https://github.com/user-attachments/assets/7c8f1392-8f0d-4663-adfd-170fe2f0c94c
 
+[Serverless_AI_Blueprint.pptx](https://github.com/user-attachments/files/26173235/Serverless_AI_Blueprint.pptx)
+
 
 
 ## 📸 Screenshots
