@@ -20,13 +20,6 @@ Enter any public company ticker → the platform automatically:
 **~25 seconds end-to-end. ~$0.01 per report.**
 
 
-https://github.com/user-attachments/assets/7c8f1392-8f0d-4663-adfd-170fe2f0c94c
-
-https://github.com/user-attachments/assets/148dbcbe-aabb-4cde-ab35-c0cb9b07c566
-
-
-
-
 
 
 ## 📸 Screenshots
@@ -148,6 +141,10 @@ Step Functions (orchestrator)
 **AWS Services:** S3, Lambda, Step Functions, EventBridge, Comprehend, Textract, Bedrock, DynamoDB, API Gateway, Secrets Manager, IAM, CloudWatch
 
 **Frontend:** Vanilla JavaScript, CSS custom properties, hosted on S3
+
+https://github.com/user-attachments/assets/7c8f1392-8f0d-4663-adfd-170fe2f0c94c
+
+https://github.com/user-attachments/assets/148dbcbe-aabb-4cde-ab35-c0cb9b07c566
 
 ## 📁 Project Structure
 
